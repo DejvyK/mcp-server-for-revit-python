@@ -53,9 +53,11 @@ class TestViewTools:
     @pytest.fixture(autouse=True)
     def setup(self, mock_mcp, mock_revit_get, mock_revit_post, mock_revit_image):
         mock_revit_get.return_value = {"status": "success", "data": []}
+        mock_revit_post.return_value = {"status": "success", "elements": []}
         register_view_tools(mock_mcp, mock_revit_get, mock_revit_post, mock_revit_image)
         self.tools = mock_mcp.tools
         self.mock_get = mock_revit_get
+        self.mock_post = mock_revit_post
         self.mock_image = mock_revit_image
 
     async def test_list_revit_views(self):
@@ -72,7 +74,12 @@ class TestViewTools:
 
     async def test_get_current_view_elements(self):
         await self.tools["get_current_view_elements"](ctx=None)
-        self.mock_get.assert_called_once_with("/current_view_elements/", None, timeout=120.0)
+        self.mock_post.assert_called_once_with(
+            "/current_view_elements/",
+            {"limit": 5000, "include_levels": False, "include_location": False},
+            None,
+            timeout=120.0,
+        )
 
 
 # ---- Family tools ----
